@@ -1,137 +1,108 @@
-let etapa = 1;
-let fade = 0;
-let bgMusic;
-let particles = [];
-let letters = [];
-let message = [
-  "Nesse Dia dos Namorados…",
-  "Quer ficar abraçadinho comigo?",
-  "12/06 às 20:30"
-];
-let imgBook, imgPaper;
+let fase = 0;
+let botaoCoracao;
+let coracoes = [];
+let fontTitulo, fontTexto;
+let papel, capa;
 
-function preload(){
-  bgMusic = loadSound()
+function preload() {
+  fontTitulo = loadFont('https://fonts.gstatic.com/s/greatvibes/v16/RWmMoKWR9v4ksMfaWd_JN9XFiaQ4.woff2');
+  fontTexto = loadFont('https://fonts.gstatic.com/s/dancingscript/v25/If2RXTr6YS-zF4S-kcSWSVi_szU.woff2');
 }
 
 function setup() {
-  let canvas = createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, CENTER);
   imageMode(CENTER);
-  bgMusic.loop();
-  imgBook = createGraphics(800, 400);
-  imgPaper = createGraphics(800, 400);
-  drawTextures();
-  initParticles();
-}
 
-function draw() {
-  background(30, 20, 25);
-  if(etapa === 1) drawCover();
-  else if(etapa === 2) drawTransition();
-  else if(etapa === 3) drawLetter();
-  updateParticles();
-}
-
-function drawCover(){
-  push();
-  translate(width/2, height/2);
-  image(imgBook, 0, 0);
-  drawTitle();
-  drawInteractiveHeart();
-  pop();
-  drawParticles();
-}
-
-function drawTitle(){
-  textFont('Great Vibes');
-  fill(255, 200, 200);
-  textSize(80);
-  text("Scrapbook de Iury & Karina", 0, -120);
-}
-
-function drawInteractiveHeart(){
-  let x = 0, y = 60;
-  let d = 120 + sin(millis()/300)*10;
-  let hovered = dist(mouseX-width/2, mouseY-height/2, x, y) < d/2;
-  fill(hovered?'#ff4d6d':'#ff7b9c');
-  heart(0, 60, d/2);
-  textFont('Dancing Script');
-  fill(240);
-  textSize(24);
-  text("abra aqui", 0, 160);
-  if(hovered && mouseIsPressed) etapa = 2;
-}
-
-function drawTransition(){
-  fade += 5;
-  fill(30, 20, 25, fade);
-  rect(0,0,width,height);
-  if(fade > 255) etapa = 3;
-}
-
-function drawLetter(){
-  push();
-  translate(width/2, height/2);
-  image(imgPaper, 0, 0);
-  drawTypingText();
-  pop();
-  drawParticles();
-}
-
-function drawTypingText(){
-  textFont('Dancing Script');
-  fill(80,0,40);
-  let baseY = -80;
-  letters.forEach((l)=> {
-    text(l.char, -l.width/2 + l.offset, l.y);
+  botaoCoracao = createButton("💖\nabra aqui");
+  botaoCoracao.style('font-family', 'fantasy');
+  botaoCoracao.style('font-size', '20px');
+  botaoCoracao.style('padding', '20px');
+  botaoCoracao.style('border-radius', '50%');
+  botaoCoracao.style('background', '#ff4d6d');
+  botaoCoracao.style('color', 'white');
+  botaoCoracao.style('border', 'none');
+  botaoCoracao.style('cursor', 'pointer');
+  botaoCoracao.position(width / 2 - 50, height / 2 + 100);
+  botaoCoracao.mousePressed(() => {
+    fase = 1;
+    botaoCoracao.remove();
   });
-}
 
-function initParticles(){
-  for(let i=0; i<100; i++){
-    particles.push({
-      x: random(width),
-      y: random(height),
-      size: random(2,5),
-      alpha: random(50,200),
-      speed: random(0.2,0.8)
-    });
+  for (let i = 0; i < 30; i++) {
+    coracoes.push(new Coracao());
   }
 }
 
-function drawParticles(){
+function draw() {
+  background('#1e1a1f');
+
+  if (fase === 0) {
+    drawCapa();
+  } else if (fase === 1) {
+    drawCarta();
+  }
+}
+
+function drawCapa() {
+  fill(255, 230, 240);
+  stroke(200);
+  strokeWeight(4);
+  rect(width / 2 - 200, height / 2 - 150, 400, 300, 20);
+  fill('#e63946');
+  textFont(fontTitulo);
+  textSize(40);
+  text("Scrapbook de Iury e Karina", width / 2, height / 2);
+}
+
+function drawCarta() {
+  // papel de fundo
+  fill(255);
   noStroke();
-  fill(255,255,255,200);
-  particles.forEach(p => ellipse(p.x, p.y, p.size));
+  rect(width / 2 - 250, height / 2 - 200, 500, 400, 20);
+
+  // texto
+  fill('#c1121f');
+  textFont(fontTexto);
+  textSize(32);
+  text("nesse dia dos namorados", width / 2, height / 2 - 100);
+
+  textSize(48);
+  text("Quer ficar abraçadinho comigo?", width / 2, height / 2);
+
+  textSize(28);
+  text("12/06", width / 2 - 60, height / 2 + 80);
+  text("às 20:30", width / 2 + 80, height / 2 + 80);
+
+  // corações subindo
+  for (let c of coracoes) {
+    c.update();
+    c.show();
+  }
 }
 
-function updateParticles(){
-  particles.forEach(p => {
-    p.y -= p.speed;
-    if(p.y < 0) p.y = height;
-  });
-}
+class Coracao {
+  constructor() {
+    this.x = random(width);
+    this.y = random(height, height + 300);
+    this.size = random(15, 30);
+    this.speed = random(0.5, 1.5);
+    this.alpha = 255;
+  }
 
-function drawTextures(){
-  imgBook.background('#f8e8ea');
-  imgBook.fill('#ddc');
-  imgBook.rect(0,0,800,400,20);
-  imgBook.noStroke();
-  imgPaper.background('#fffaf0');
-  imgPaper.noStroke();
-  imgPaper.fill('#eed');
-  imgPaper.rect(0,0,800,400,20);
-}
+  update() {
+    this.y -= this.speed;
+    this.alpha -= 0.5;
+    if (this.y < -50 || this.alpha < 0) {
+      this.y = random(height, height + 300);
+      this.alpha = 255;
+    }
+  }
 
-function heart(x,y,s){
-  beginShape();
-  vertex(x,y);
-  bezierVertex(x - s, y - s, x - s*1.5, y + s/3, x, y + s);
-  bezierVertex(x + s*1.5, y + s/3, x + s, y - s, x, y);
-  endShape(CLOSE);
-}
-
-function windowResized(){
-  resizeCanvas(windowWidth, windowHeight);
+  show() {
+    noStroke();
+    fill(255, 0, 100, this.alpha);
+    textSize(this.size);
+    text('❤', this.x, this.y);
+  }
 }
